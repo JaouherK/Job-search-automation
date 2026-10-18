@@ -237,7 +237,9 @@ function ReplyDraft({ email, aiReady }: { email: EmailView; aiReady: boolean }) 
     if (!wantsSlots) return;
     let stale = false;
     void loadFreeSlots({}).then((result) => {
-      if (stale || !result.ok) return;
+      if (stale) return;
+      // Without the calendar (or when Google can't be reached), offer no times rather than wait.
+      if (!result.ok) return setSlots([]);
       setSlots(result.data.slots);
       setPicked(result.data.slots.slice(0, 3).map((slot) => slot.start));
     });
