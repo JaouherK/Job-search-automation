@@ -42,6 +42,7 @@ import {
   loadFreeSlots,
   markHandled,
   rereadEmail,
+  saveGoogleClient,
   saveGoogleSettings,
   saveReplyDraft,
   startDraftingReply,
@@ -178,6 +179,27 @@ describe("Settings → Google (E15-1)", () => {
     expect(rows).toMatchObject({ workDays: "[1,3]", workTimeZone: "America/New_York", gmailScope: "all" });
     expect(await saveGoogleSettings({ workStart: "17:00", workEnd: "09:00" })).toMatchObject({ ok: false });
     expect(await saveGoogleSettings({ workTimeZone: "Mars/Olympus" })).toMatchObject({ ok: false });
+  });
+
+  it("saves the OAuth client, the secret encrypted and never sent back", async () => {
+    expect(await saveGoogleClient({ id: "client", secret: { action: "set", value: "new-secret" } })).toEqual({
+      ok: true,
+      data: { id: "client", idState: "set", secretState: "set" },
+    });
+    const stored = await prisma().setting.findUnique({ where: { key: "googleClientSecretEnc" } });
+    expect(stored?.value).toMatch(/^v1\./);
+    expect(stored?.value).not.toContain("new-secret");
+    // Same client ID, new secret: the account stays connected.
+    expect(await googleConnection()).toMatchObject({ status: "connected" });
+
+    expect(await saveGoogleClient({ secret: { action: "clear" } })).toMatchObject({ ok: true, data: { secretState: "env" } });
+    expect(await prisma().setting.count({ where: { key: "googleClientSecretEnc" } })).toBe(0);
+  });
+
+  it("disconnects when the client ID changes, since Google's grant belongs to it", async () => {
+    expect(await saveGoogleClient({ id: "other-client" })).toMatchObject({ ok: true, data: { id: "other-client", idState: "set" } });
+    expect(calls.find((call) => call.url.includes("/revoke"))).toBeDefined();
+    expect(await googleConnection()).toEqual({ status: "disconnected" });
   });
 
   it("disconnects, revoking the token at Google", async () => {

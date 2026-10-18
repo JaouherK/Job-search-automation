@@ -58,6 +58,8 @@ describe("stored settings", () => {
       jsearchHost: "openwebninja",
       adzunaAppId: null,
       adzunaKeyEnc: null,
+      googleClientId: null,
+      googleClientSecretEnc: null,
       gmailRead: true,
       gmailScope: "known",
       gmailInterval: 10,

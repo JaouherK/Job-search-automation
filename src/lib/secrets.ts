@@ -18,6 +18,8 @@ export const AI_API_KEY: SecretKind = { purpose: "api-key-encryption", associate
 export const JOB_SOURCE_KEY: SecretKind = { purpose: "job-source-key-encryption", associatedData: "dossier job source key v1" };
 /** The Google account's refresh token (E15-1). */
 export const GOOGLE_TOKEN: SecretKind = { purpose: "google-token-encryption", associatedData: "dossier google token v1" };
+/** The Google OAuth client's secret, entered in Settings → Google. */
+export const GOOGLE_CLIENT_SECRET: SecretKind = { purpose: "google-client-secret-encryption", associatedData: "dossier google client secret v1" };
 
 const VERSION = "v1";
 const IV_BYTES = 12;

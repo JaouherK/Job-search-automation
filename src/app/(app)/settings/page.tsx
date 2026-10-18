@@ -10,7 +10,7 @@ import { exportFileName } from "@/lib/data-export";
 import { formatShortDate } from "@/lib/dates";
 import { env } from "@/lib/env";
 import { googleConnection } from "@/lib/google/account";
-import { redirectUri } from "@/lib/google/oauth";
+import { loadGoogleClientConfig, redirectUri } from "@/lib/google/oauth";
 import { userTimeZone } from "@/lib/time-zone";
 import { appVersion } from "@/lib/version";
 import { prisma } from "@/lib/prisma";
@@ -51,6 +51,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
           <GoogleNotice outcome={typeof params.google === "string" ? params.google : null} />
           <GoogleSection
             connection={await googleView()}
+            client={await googleClientView()}
             browserTimeZone={(await userTimeZone()) ?? null}
             redirectUri={redirectUri(await requestOrigin())}
             initial={{
@@ -109,6 +110,12 @@ async function googleView() {
   if (connection.status !== "connected") return connection;
   const { lastSyncAt, ...rest } = connection;
   return { ...rest, lastSync: whenRan(lastSyncAt) };
+}
+
+/** The OAuth client as the Google section shows it: the ID, never the secret. */
+async function googleClientView() {
+  const { id, idState, secretState } = await loadGoogleClientConfig();
+  return { id, idState, secretState };
 }
 
 /** The address this page was reached at, for the redirect URI to register. */

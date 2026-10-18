@@ -95,6 +95,11 @@ export const settingsSchema = z.object({
   adzunaAppId: z.string().nullable().catch(null),
   adzunaKeyEnc: z.string().nullable().catch(null),
   // Gmail and Calendar (E15). Off until the Google account is connected.
+  // The OAuth client, entered in Settings → Google. Null means "not set in the
+  // app": DOSSIER_GOOGLE_CLIENT_ID and DOSSIER_GOOGLE_CLIENT_SECRET decide.
+  googleClientId: z.string().nullable().catch(null),
+  /** Encrypted like the API keys (GOOGLE_CLIENT_SECRET); never sent to the client. */
+  googleClientSecretEnc: z.string().nullable().catch(null),
   /** Read replies from Gmail. */
   gmailRead: flag(true),
   /** Which mail the inbox check reads: only threads Dossier knows and company domains, or every new mail. */

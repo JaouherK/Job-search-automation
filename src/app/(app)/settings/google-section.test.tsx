@@ -4,9 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { checkInbox, disconnectGoogleAccount, saveGoogleSettings } from "@/lib/google/actions";
 
-import { GoogleSection, type GoogleSettings } from "./google-section";
+import { GoogleSection, type GoogleClientView, type GoogleSettings } from "./google-section";
 
 vi.mock("@/lib/google/actions", () => ({
+  saveGoogleClient: vi.fn(async () => ({ ok: true, data: { id: "", idState: "none", secretState: "none" } })),
   checkInbox: vi.fn(async () => ({ ok: true, data: null })),
   disconnectGoogleAccount: vi.fn(async () => ({ ok: true, data: null })),
   saveGoogleSettings: vi.fn(async () => ({ ok: true, data: null })),
@@ -29,18 +30,20 @@ const settings: GoogleSettings = {
   bufferMinutes: 15,
 };
 const redirect = "http://localhost:3333/api/google/callback";
+const client: GoogleClientView = { id: "", idState: "none", secretState: "none" };
 
 beforeEach(() => vi.mocked(saveGoogleSettings).mockClear());
 
 describe("GoogleSection (E15-1)", () => {
   it("explains the setup while the server has no Google client", () => {
-    render(<GoogleSection connection={{ status: "not-configured" }} initial={settings} browserTimeZone="Europe/Berlin" redirectUri={redirect} />);
+    render(<GoogleSection client={client} connection={{ status: "not-configured" }} initial={settings} browserTimeZone="Europe/Berlin" redirectUri={redirect} />);
     expect(screen.getByText(redirect)).toBeInTheDocument();
-    expect(screen.getByText(/DOSSIER_GOOGLE_CLIENT_ID/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Client ID")).toBeInTheDocument();
+    expect(screen.getByLabelText("Client secret")).toHaveAttribute("type", "password");
   });
 
   it("offers to connect", () => {
-    render(<GoogleSection connection={{ status: "disconnected" }} initial={settings} browserTimeZone={null} redirectUri={redirect} />);
+    render(<GoogleSection client={client} connection={{ status: "disconnected" }} initial={settings} browserTimeZone={null} redirectUri={redirect} />);
     expect(screen.getByRole("link", { name: "Connect Google account" })).toHaveAttribute("href", "/api/google/connect");
   });
 
@@ -48,6 +51,7 @@ describe("GoogleSection (E15-1)", () => {
     const user = userEvent.setup();
     render(
       <GoogleSection
+        client={client}
         connection={{ status: "connected", email: "jane@gmail.com", canSend: true, canRead: true, canUseCalendar: false, lastSync: "today at 10:00", syncProblem: null }}
         initial={settings}
         browserTimeZone="Europe/Berlin"

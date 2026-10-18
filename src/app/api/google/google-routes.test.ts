@@ -13,6 +13,8 @@ import { GET as connect } from "./connect/route";
 
 const env = vi.hoisted(() => ({ DOSSIER_SECRET: "s".repeat(40), DOSSIER_GOOGLE_CLIENT_ID: "client" as string | undefined, DOSSIER_GOOGLE_CLIENT_SECRET: "secret" }));
 vi.mock("@/lib/env", () => ({ env }));
+// Nothing saved in Settings → Google: the client comes from the environment.
+vi.mock("@/lib/settings-data", () => ({ loadSettings: async () => ({ googleClientId: null, googleClientSecretEnc: null }) }));
 vi.mock("@/lib/auth/session", () => ({ getSession: vi.fn() }));
 vi.mock("@/lib/google/account", () => ({ loadGoogleAccount: vi.fn(), saveGoogleAccount: vi.fn() }));
 vi.mock("@/lib/google/oauth", async (original) => ({ ...(await original<typeof import("@/lib/google/oauth")>()), exchangeCode: vi.fn() }));

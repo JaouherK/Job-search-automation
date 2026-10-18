@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Select } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
-import { checkInbox, disconnectGoogleAccount, saveGoogleSettings } from "@/lib/google/actions";
+import { checkInbox, disconnectGoogleAccount, saveGoogleClient, saveGoogleSettings } from "@/lib/google/actions";
 import { cn } from "@/lib/cn";
 
 import { SettingsSectionIntro } from "./settings-screen";
@@ -32,6 +32,13 @@ export type GoogleSettings = {
   bufferMinutes: number;
 };
 
+/** Where each part of the OAuth client comes from; the secret itself never reaches the browser. */
+export type GoogleClientView = {
+  id: string;
+  idState: "set" | "env" | "none" | "unreadable";
+  secretState: "set" | "env" | "none" | "unreadable";
+};
+
 export type GoogleConnectionView =
   | { status: "not-configured" }
   | { status: "disconnected" }
@@ -47,7 +54,7 @@ export const CALLBACK_MESSAGES: Record<string, string> = {
   connected: "Connected to Google.",
   denied: "Google wasn't given access, so nothing changed.",
   expired: "That took too long or didn't start here. Try connecting again.",
-  rejected: "Google refused the sign-in. Check DOSSIER_GOOGLE_CLIENT_ID and DOSSIER_GOOGLE_CLIENT_SECRET.",
+  rejected: "Google refused the sign-in. Check the client ID and secret below.",
   failed: "Connecting to Google didn't work. Try again.",
   "not-configured": "Google isn't set up on this server yet. See the steps below.",
 };
@@ -59,11 +66,13 @@ export const CALLBACK_MESSAGES: Record<string, string> = {
  */
 export function GoogleSection({
   connection,
+  client,
   initial,
   browserTimeZone,
   redirectUri,
 }: {
   connection: GoogleConnectionView;
+  client: GoogleClientView;
   initial: GoogleSettings;
   browserTimeZone: string | null;
   /** The address to register in Google Cloud. */
@@ -98,7 +107,7 @@ export function GoogleSection({
       router.refresh();
     });
 
-  if (connection.status === "not-configured") return <SetupSteps redirectUri={redirectUri} />;
+  if (connection.status === "not-configured") return <SetupSteps redirectUri={redirectUri} client={client} />;
 
   return (
     <>
@@ -275,6 +284,8 @@ export function GoogleSection({
         </>
       )}
 
+      <ClientCard initial={client} connected={connection.status === "connected"} />
+
       <ConfirmDialog
         open={confirming}
         onOpenChange={setConfirming}
@@ -304,7 +315,7 @@ function Permission({ granted, group, label }: { granted: boolean; group: string
 }
 
 /** Before the server has a Google client: how to make one. */
-function SetupSteps({ redirectUri }: { redirectUri: string }) {
+function SetupSteps({ redirectUri, client }: { redirectUri: string; client: GoogleClientView }) {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(redirectUri);
@@ -340,13 +351,101 @@ function SetupSteps({ redirectUri }: { redirectUri: string }) {
               </Button>
             </span>
           </li>
-          <li>
-            Set <code className="font-mono text-label">DOSSIER_GOOGLE_CLIENT_ID</code> and{" "}
-            <code className="font-mono text-label">DOSSIER_GOOGLE_CLIENT_SECRET</code> in your <code className="font-mono text-label">.env</code>,
-            and restart Dossier.
-          </li>
+          <li>Paste the client&apos;s ID and secret below.</li>
         </ol>
       </Card>
+      <ClientCard initial={client} connected={false} />
     </>
+  );
+}
+
+const SECRET_PLACEHOLDER: Record<GoogleClientView["secretState"], string> = {
+  set: "Saved · type a new secret to replace it",
+  env: "Using DOSSIER_GOOGLE_CLIENT_SECRET · type one to save it here",
+  none: "Stored encrypted on your server",
+  unreadable: "Stored encrypted on your server",
+};
+
+/**
+ * The OAuth client: its ID, and a write-only secret, each saved when you
+ * leave its field. Saved here, they override the DOSSIER_GOOGLE_CLIENT_*
+ * variables. A different client ID disconnects the account.
+ */
+function ClientCard({ initial, connected }: { initial: GoogleClientView; connected: boolean }) {
+  const track = useTrackSave();
+  const router = useRouter();
+  const [view, setView] = useState(initial);
+  const [id, setId] = useState(initial.id);
+  const [secret, setSecret] = useState("");
+
+  const save = async (change: Parameters<typeof saveGoogleClient>[0]) => {
+    const result = toastResult(await track(saveGoogleClient(change)));
+    if (!result.ok) return false;
+    setView(result.data);
+    setId(result.data.id);
+    router.refresh();
+    return true;
+  };
+
+  const saveId = () => {
+    if (id.trim() === view.id) return;
+    void save({ id });
+  };
+  const saveSecret = async () => {
+    if (!secret.trim()) return;
+    if (await save({ secret: { action: "set", value: secret } })) setSecret("");
+  };
+
+  return (
+    <Card className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <h3 className="text-control font-medium">OAuth client</h3>
+        <p className="text-meta text-muted">
+          {connected ? "Changing the client ID disconnects your Google account; connect again afterwards." : "Saved on this server, so no restart is needed."}
+        </p>
+      </div>
+      <div className="grid grid-cols-1 gap-x-[18px] gap-y-5 sm:grid-cols-2">
+        <Input
+          label="Client ID"
+          value={id}
+          placeholder={view.idState === "env" ? "Using DOSSIER_GOOGLE_CLIENT_ID" : "…apps.googleusercontent.com"}
+          hint={view.idState === "env" ? "From DOSSIER_GOOGLE_CLIENT_ID · type one to save it here" : undefined}
+          spellCheck={false}
+          autoComplete="off"
+          inputClassName="font-mono text-[13.5px]"
+          onChange={(event) => setId(event.target.value)}
+          onBlur={saveId}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              saveId();
+            }
+          }}
+        />
+        <div className="flex flex-col gap-2.5">
+          <Input
+            label="Client secret"
+            type="password"
+            autoComplete="off"
+            value={secret}
+            placeholder={SECRET_PLACEHOLDER[view.secretState]}
+            error={view.secretState === "unreadable" ? "The saved secret can't be read, probably since DOSSIER_SECRET changed. Enter it again." : undefined}
+            onChange={(event) => setSecret(event.target.value)}
+            onBlur={() => void saveSecret()}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && secret.trim()) {
+                event.preventDefault();
+                void saveSecret();
+              }
+            }}
+          />
+          {(view.secretState === "set" || view.secretState === "unreadable") && (
+            <Button variant="text" size="sm" className="self-start" onClick={() => void save({ secret: { action: "clear" } })}>
+              Remove saved secret
+            </Button>
+          )}
+        </div>
+      </div>
+    </Card>
   );
 }

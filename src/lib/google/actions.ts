@@ -9,13 +9,15 @@ import { isAiConfigured } from "@/lib/ai/config";
 import { draftReplyJob, replyJobKey } from "@/lib/jobs/draft-reply";
 import { findUnfinishedJobs, startJob } from "@/lib/jobs/runner";
 import { prisma } from "@/lib/prisma";
-import { saveSettings } from "@/lib/settings-data";
+import { applySecretChange, GOOGLE_CLIENT_SECRET } from "@/lib/secrets";
+import { loadSettings, saveSettings } from "@/lib/settings-data";
 import { statusInfo } from "@/lib/status";
 import { applyStatusChange } from "@/lib/status-changes";
 
 import { disconnectGoogle, googleConnection } from "./account";
 import { proposeSlots, scheduleInterview } from "./availability";
 import { GoogleError } from "./errors";
+import { loadGoogleClientConfig } from "./oauth";
 import { sendApplicationEmail, sendReply } from "./send";
 import { formatSlot } from "./slots";
 import { checkInboxNow, readReply } from "./sync";
@@ -72,6 +74,39 @@ export const saveGoogleSettings = action(
       ...(workTimeZone === undefined ? {} : { workTimeZone: workTimeZone || null }),
     });
     return null;
+  },
+);
+
+/** What Settings → Google shows of the OAuth client: the ID, and only whether a secret is there. */
+const clientView = async () => {
+  const { id, idState, secretState } = await loadGoogleClientConfig();
+  return { id, idState, secretState };
+};
+
+/**
+ * Saves the OAuth client in Settings → Google: the ID as typed (empty
+ * removes it), the secret encrypted, or removed. The secret never comes
+ * back to the browser. A different client ID can't use the old grant, so
+ * changing it disconnects the account.
+ */
+export const saveGoogleClient = action(
+  z.strictObject({
+    id: z.string().trim().max(300).optional(),
+    secret: z
+      .discriminatedUnion("action", [z.object({ action: z.literal("set"), value: z.string().trim().min(1).max(500) }), z.object({ action: z.literal("clear") })])
+      .optional(),
+  }),
+  async ({ id, secret }) => {
+    const current = await loadSettings();
+    const before = await loadGoogleClientConfig();
+    await saveSettings({
+      ...(id === undefined ? {} : { googleClientId: id || null }),
+      ...(secret === undefined ? {} : { googleClientSecretEnc: applySecretChange(GOOGLE_CLIENT_SECRET, current.googleClientSecretEnc, secret) }),
+    });
+    // Google's grant belongs to the client ID; a new secret for the same client keeps it.
+    if (before.id && before.id !== (await loadGoogleClientConfig()).id) await disconnectGoogle().catch(() => {});
+    revalidatePath("/settings");
+    return clientView();
   },
 );
 

@@ -122,7 +122,8 @@ const schema = z.object({
   DOSSIER_ADZUNA_APP_ID: optional(z.string()),
   DOSSIER_ADZUNA_KEY: optional(z.string()),
   // Google sign-in for Gmail and Calendar (E15-1): an OAuth client of type
-  // "Web application". Never echo the secret.
+  // "Web application". Settings → Google can save one instead, which wins.
+  // Never echo the secret.
   DOSSIER_GOOGLE_CLIENT_ID: optional(z.string().trim()),
   DOSSIER_GOOGLE_CLIENT_SECRET: optional(z.string().trim()),
   // The address Dossier is reached at, e.g. https://dossier.example.com, for

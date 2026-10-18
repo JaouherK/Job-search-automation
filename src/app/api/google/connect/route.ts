@@ -13,7 +13,7 @@ const GROUPS: readonly ScopeGroup[] = ["send", "read", "calendar"];
  * consent page, which comes back to /api/google/callback.
  */
 export const GET = route(async (request) => {
-  const client = googleClient();
+  const client = await googleClient();
   const settings = new URL("/settings?section=google", publicOrigin(request));
   if (!client) {
     settings.searchParams.set("google", "not-configured");

@@ -3,8 +3,11 @@ import "server-only";
 import { jwtVerify, SignJWT } from "jose";
 import { z } from "zod";
 
-import { env } from "@/lib/env";
+import { env, type Env } from "@/lib/env";
 import { deriveKey } from "@/lib/keys";
+import { decryptSecret, GOOGLE_CLIENT_SECRET, SecretUnreadable } from "@/lib/secrets";
+import type { SettingsData } from "@/lib/settings";
+import { loadSettings } from "@/lib/settings-data";
 
 import { GoogleError } from "./errors";
 
@@ -38,11 +41,53 @@ export function hasScopes(granted: string, group: ScopeGroup): boolean {
   return SCOPES[group].every((scope) => scopes.has(scope));
 }
 
-/** The client from the environment, or null while Google isn't set up. */
-export function googleClient(): { id: string; secret: string } | null {
-  const id = env.DOSSIER_GOOGLE_CLIENT_ID;
-  const secret = env.DOSSIER_GOOGLE_CLIENT_SECRET;
-  return id && secret ? { id, secret } : null;
+/** Where a part of the client comes from: saved in Settings, the environment, nowhere, or saved but unreadable. */
+export type ClientPartState = "set" | "env" | "none" | "unreadable";
+
+export type GoogleClientConfig = {
+  /** The client in effect, or null while Google isn't set up. */
+  client: { id: string; secret: string } | null;
+  id: string;
+  idState: ClientPartState;
+  secretState: ClientPartState;
+};
+
+type SavedClient = Pick<SettingsData, "googleClientId" | "googleClientSecretEnc">;
+type ClientEnv = Pick<Env, "DOSSIER_GOOGLE_CLIENT_ID" | "DOSSIER_GOOGLE_CLIENT_SECRET">;
+
+/**
+ * The OAuth client: what's saved in Settings → Google, else the
+ * DOSSIER_GOOGLE_CLIENT_* variables, each part on its own.
+ */
+export function resolveGoogleClient(saved: SavedClient, source: ClientEnv, secret?: string): GoogleClientConfig {
+  const fromEnvId = source.DOSSIER_GOOGLE_CLIENT_ID || undefined;
+  const id = saved.googleClientId ?? fromEnvId ?? "";
+  const idState: ClientPartState = saved.googleClientId ? "set" : fromEnvId ? "env" : "none";
+  let clientSecret: string | null = null;
+  let secretState: ClientPartState = "none";
+  if (saved.googleClientSecretEnc) {
+    try {
+      clientSecret = decryptSecret(GOOGLE_CLIENT_SECRET, saved.googleClientSecretEnc, secret);
+      secretState = "set";
+    } catch (error) {
+      if (!(error instanceof SecretUnreadable)) throw error;
+      secretState = "unreadable";
+    }
+  } else if (source.DOSSIER_GOOGLE_CLIENT_SECRET) {
+    clientSecret = source.DOSSIER_GOOGLE_CLIENT_SECRET;
+    secretState = "env";
+  }
+  return { client: id && clientSecret ? { id, secret: clientSecret } : null, id, idState, secretState };
+}
+
+/** The client configuration in effect right now. */
+export async function loadGoogleClientConfig(): Promise<GoogleClientConfig> {
+  return resolveGoogleClient(await loadSettings(), env);
+}
+
+/** The client in effect, or null while Google isn't set up. */
+export async function googleClient(): Promise<{ id: string; secret: string } | null> {
+  return (await loadGoogleClientConfig()).client;
 }
 
 /** Where Google sends the browser back to: DOSSIER_PUBLIC_URL, else the address in use. */
@@ -125,7 +170,7 @@ async function postToken(body: Record<string, string>, signal?: AbortSignal): Pr
   if (!response.ok) {
     // invalid_grant: the refresh token was revoked, expired or the password changed.
     if (json?.error === "invalid_grant") throw new GoogleError("revoked", "Google no longer accepts Dossier's access. Connect your Google account again.");
-    throw new GoogleError("rejected", "Google refused the sign-in. Check DOSSIER_GOOGLE_CLIENT_ID and DOSSIER_GOOGLE_CLIENT_SECRET.");
+    throw new GoogleError("rejected", "Google refused the sign-in. Check the client ID and secret in Settings → Google.");
   }
   const parsed = tokenSchema.safeParse(json);
   if (!parsed.success) throw new GoogleError("unavailable", "Google sent an answer Dossier doesn't understand.");
@@ -133,15 +178,15 @@ async function postToken(body: Record<string, string>, signal?: AbortSignal): Pr
 }
 
 /** Trades the code from the callback for tokens. */
-export function exchangeCode(code: string, redirect: string): Promise<TokenAnswer> {
-  const client = googleClient();
+export async function exchangeCode(code: string, redirect: string): Promise<TokenAnswer> {
+  const client = await googleClient();
   if (!client) throw new GoogleError("not-configured", NOT_CONFIGURED);
   return postToken({ code, client_id: client.id, client_secret: client.secret, redirect_uri: redirect, grant_type: "authorization_code" });
 }
 
 /** A fresh access token from the refresh token. */
-export function refreshAccessToken(refreshToken: string, signal?: AbortSignal): Promise<TokenAnswer> {
-  const client = googleClient();
+export async function refreshAccessToken(refreshToken: string, signal?: AbortSignal): Promise<TokenAnswer> {
+  const client = await googleClient();
   if (!client) throw new GoogleError("not-configured", NOT_CONFIGURED);
   return postToken({ refresh_token: refreshToken, client_id: client.id, client_secret: client.secret, grant_type: "refresh_token" }, signal);
 }
@@ -172,5 +217,4 @@ export function emailFromIdToken(idToken: string | undefined): string | null {
   }
 }
 
-export const NOT_CONFIGURED =
-  "Google isn't set up on this server. Set DOSSIER_GOOGLE_CLIENT_ID and DOSSIER_GOOGLE_CLIENT_SECRET, then restart Dossier.";
+export const NOT_CONFIGURED = "Google isn't set up yet. Enter the OAuth client ID and secret in Settings → Google.";

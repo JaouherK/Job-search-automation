@@ -31,7 +31,7 @@ export async function loadGoogleAccount() {
 }
 
 export async function googleConnection(): Promise<GoogleConnection> {
-  if (!googleClient()) return { status: "not-configured" };
+  if (!(await googleClient())) return { status: "not-configured" };
   const account = await loadGoogleAccount();
   if (!account) return { status: "disconnected" };
   return {
