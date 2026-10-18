@@ -6,7 +6,7 @@ import { EMPTY_QUERY } from "./search";
 // Checks against the real JSearch API, skipped unless asked for. Each run
 // spends two searches from the plan:
 //
-//   JOBS_LIVE=jsearch JSEARCH_TEST_KEY=… docker/bin/yarn vitest run src/lib/job-search/jsearch.live.test.ts
+//   JOBS_LIVE=jsearch JSEARCH_TEST_KEY=… docker/bin/npx vitest run src/lib/job-search/jsearch.live.test.ts
 //
 // JSEARCH_TEST_HOST=rapidapi checks a RapidAPI key instead.
 

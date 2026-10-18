@@ -4,9 +4,6 @@
 # which isn't built for musl (decided in E5-5, #46).
 FROM node:24-trixie-slim AS base
 WORKDIR /app
-# Swap the image's bundled Yarn 1 for the version pinned in package.json (packageManager).
-RUN corepack enable
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 # Where Playwright keeps Chromium: in the image, not in a user's home or a volume.
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
@@ -14,8 +11,8 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 FROM base AS dev
 RUN chown node:node /app
 USER node
-COPY --chown=node:node package.json yarn.lock .yarnrc.yml ./
-RUN yarn install --immutable && mkdir .next
+COPY --chown=node:node package.json package-lock.json ./
+RUN npm ci && mkdir .next
 # Chromium for PDFs, matching the installed playwright-core, with the system
 # libraries and fonts it needs (installing those takes root). Only the
 # headless shell: printing needs nothing more.
@@ -25,7 +22,7 @@ RUN node node_modules/playwright-core/cli.js install --with-deps --only-shell ch
 USER node
 EXPOSE 3000
 # The seed is idempotent: built-in themes, an empty profile and default settings.
-CMD ["sh", "-c", "yarn prisma generate && yarn prisma migrate deploy && yarn prisma db seed && yarn dev"]
+CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm run dev"]
 
 # ── Production (E12-1) ───────────────────────────────────────────────────────
 # Dependencies, then the build, then a runtime with only what running needs:
@@ -33,22 +30,21 @@ CMD ["sh", "-c", "yarn prisma generate && yarn prisma migrate deploy && yarn pri
 # Builds without any secrets: the environment is read when the server starts.
 
 FROM base AS deps
-COPY package.json yarn.lock .yarnrc.yml ./
-RUN yarn install --immutable
+COPY package.json package-lock.json ./
+RUN npm ci
 
 FROM deps AS build
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY . .
-RUN yarn prisma generate && yarn build
-# Prisma's CLI for `migrate deploy`, at the version in yarn.lock, with the
-# same resolutions as package.json; not the rest of the dev dependencies.
+RUN npx prisma generate && npm run build
+# Prisma's CLI for `migrate deploy`, at the version in package-lock.json, with
+# the same overrides as package.json; not the rest of the dev dependencies.
 RUN mkdir /tools && node -e ' \
   const version = (name) => require(`/app/node_modules/${name}/package.json`).version; \
-  const resolutions = require("/app/package.json").resolutions ?? {}; \
   require("node:fs").writeFileSync("/tools/package.json", JSON.stringify({ \
     private: true, \
     dependencies: { prisma: version("prisma"), dotenv: version("dotenv") }, \
-    overrides: Object.fromEntries(Object.entries(resolutions).map(([from, to]) => [from.split("@npm:")[0], to])), \
+    overrides: require("/app/package.json").overrides ?? {}, \
   }));' \
   && cd /tools && npm install --omit=dev --no-audit --no-fund \
   && cp -r /app/prisma7.config.ts /app/prisma /tools/

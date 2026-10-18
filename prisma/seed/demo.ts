@@ -84,7 +84,7 @@ export async function seedDemo(
   if (!reset && (await hasUserData(db))) {
     throw new DemoRefused(
       "Demo data wasn't loaded: the database already has a profile or applications. " +
-        "Run `docker/bin/yarn prisma db seed -- --demo --reset` to delete them and load the demo instead.",
+        "Run `docker/bin/npx prisma db seed -- --demo --reset` to delete them and load the demo instead.",
     );
   }
 

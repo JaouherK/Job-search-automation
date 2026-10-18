@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 import { APP_PORT, appEnv, FAKE_AI_PORT, FAKE_JOBS_PORT, STORAGE_STATE } from "./e2e/support";
 
-// End-to-end tests (E11-2): a production build (`yarn build` first) with its
+// End-to-end tests (E11-2): a production build (`npm run build` first) with its
 // own database, a fake AI server and fake job sources, in headless Chromium.
 // See DEVELOPMENT.md → "End-to-end tests".
 export default defineConfig({

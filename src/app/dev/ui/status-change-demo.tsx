@@ -29,7 +29,7 @@ export function StatusChangeDemo({ application }: { application: DemoApplication
   if (!application) {
     return (
       <p className="text-sm text-muted">
-        No applications yet. Load the demo data with <code className="font-mono">docker/bin/yarn prisma db seed -- --demo</code>.
+        No applications yet. Load the demo data with <code className="font-mono">docker/bin/npx prisma db seed -- --demo</code>.
       </p>
     );
   }

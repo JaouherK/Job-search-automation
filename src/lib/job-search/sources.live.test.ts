@@ -8,8 +8,8 @@ import { EMPTY_QUERY } from "./search";
 // asked for. The Arbeitsagentur needs no key and costs nothing; Adzuna
 // spends two calls from the day's allowance:
 //
-//   JOBS_LIVE=arbeitsagentur docker/bin/yarn vitest run src/lib/job-search/sources.live.test.ts
-//   JOBS_LIVE=adzuna ADZUNA_TEST_APP_ID=… ADZUNA_TEST_KEY=… docker/bin/yarn vitest run src/lib/job-search/sources.live.test.ts
+//   JOBS_LIVE=arbeitsagentur docker/bin/npx vitest run src/lib/job-search/sources.live.test.ts
+//   JOBS_LIVE=adzuna ADZUNA_TEST_APP_ID=… ADZUNA_TEST_KEY=… docker/bin/npx vitest run src/lib/job-search/sources.live.test.ts
 
 const live = new Set((process.env.JOBS_LIVE ?? "").split(",").map((name) => name.trim()));
 const adzunaKey = { appId: process.env.ADZUNA_TEST_APP_ID ?? "", key: process.env.ADZUNA_TEST_KEY ?? "" };

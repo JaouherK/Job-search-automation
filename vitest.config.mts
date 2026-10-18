@@ -16,7 +16,7 @@ export default defineConfig({
   test: {
     // Leave room for the dev server and database on the same machine.
     maxWorkers: "50%",
-    // `yarn test:coverage` (E11-1). The thresholds ratchet (decided 28
+    // `npm run test:coverage` (E11-1). The thresholds ratchet (decided 28
     // September 2026): a few points below the coverage when they were set.
     // Raise them as tests are added; CI fails when coverage drops below.
     coverage: {

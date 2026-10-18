@@ -1,13 +1,13 @@
 # Developing Dossier
 
-Next.js 16 (App Router) + Prisma 7 + PostgreSQL 18, run with Docker Compose and Yarn 4. Nothing runs on the host: every command goes through the containers. For installing and running Dossier, see the [README](README.md); for how it's secured, [SECURITY.md](SECURITY.md).
+Next.js 16 (App Router) + Prisma 7 + PostgreSQL 18, run with Docker Compose and npm. Nothing runs on the host: every command goes through the containers. For installing and running Dossier, see the [README](README.md); for how it's secured, [SECURITY.md](SECURITY.md).
 
 ## Getting started
 
 ```bash
 cp .env.example .env
 docker compose build
-docker/bin/yarn hash-password   # set DOSSIER_PASSWORD in .env to what it prints
+docker/bin/npm run hash-password   # set DOSSIER_PASSWORD in .env to what it prints
 # set DOSSIER_SECRET (openssl rand -base64 32) in .env
 docker compose up
 ```
@@ -24,15 +24,15 @@ import { env } from "@/lib/env";
 On every start the `app` container runs `prisma generate`, `prisma migrate deploy`, then `next dev`.
 Postgres is also exposed on `localhost:5434` for host tools, using `DATABASE_URL` from `.env`.
 
-## Yarn
+## npm
 
 Dependencies live in the container (a named `node_modules` volume), not on the host.
-Run yarn through `docker/bin/yarn`, which uses the running `app` container or, if it's stopped, a one-off one:
+Run npm and npx through `docker/bin/npm` and `docker/bin/npx`, which use the running `app` container or, if it's stopped, a one-off one:
 
 ```bash
-docker/bin/yarn add <package>
-docker/bin/yarn install   # after pulling changes to yarn.lock
-docker/bin/yarn lint
+docker/bin/npm install <package>
+docker/bin/npm install   # after pulling changes to package-lock.json
+docker/bin/npm run lint
 ```
 
 ## Database
@@ -40,7 +40,7 @@ docker/bin/yarn lint
 Define models in `prisma/schema.prisma`, then create and apply a migration:
 
 ```bash
-docker/bin/yarn prisma migrate dev --name <migration-name>
+docker/bin/npx prisma migrate dev --name <migration-name>
 docker compose restart app
 ```
 
@@ -67,8 +67,8 @@ Change an application's status only through `setStatus` in `src/lib/status-actio
 Each start runs `prisma db seed`, which creates the six built-in themes, an empty profile and default settings. It never overwrites your profile or settings. To load the prototype's sample data (Jane Doe and nine applications):
 
 ```bash
-docker/bin/yarn prisma db seed -- --demo           # refuses if you already have a profile or applications
-docker/bin/yarn prisma db seed -- --demo --reset   # deletes your profile and applications first
+docker/bin/npx prisma db seed -- --demo           # refuses if you already have a profile or applications
+docker/bin/npx prisma db seed -- --demo --reset   # deletes your profile and applications first
 ```
 
 ## Mutations and private routes
@@ -125,7 +125,7 @@ Both get the session from `getSession()` in `src/lib/auth/session.ts` (see [Sign
 
 Dossier has one user and no accounts: you sign in with the password that `DOSSIER_PASSWORD` is a hash of. The session is an encrypted token (JWE, keyed from `DOSSIER_SECRET`) in an HttpOnly, SameSite=Lax cookie, so nothing is stored on the server. It lasts until the browser closes, but at most 24 hours; with "Keep me signed in", 30 days.
 
-The hash is argon2id with OWASP's settings (19 MiB, 2 passes, 1 lane) from Node's own `crypto.argon2`, made by `docker/bin/yarn hash-password` (`scripts/hash-password.ts`, which the image bundles as the `hash-password` command). Checking a password against it is in `src/lib/auth/password-hash.ts`, and `src/lib/env.ts` refuses anything that isn't a hash. It's written as `argon2id:m=19456,t=2,p=1:<salt>:<hash>` rather than the usual `$argon2id$v=19$…`, because Next.js and Docker Compose expand `$` in `.env` files, even inside quotes. The settings are part of each hash, so stronger ones can come later without breaking existing hashes.
+The hash is argon2id with OWASP's settings (19 MiB, 2 passes, 1 lane) from Node's own `crypto.argon2`, made by `docker/bin/npm run hash-password` (`scripts/hash-password.ts`, which the image bundles as the `hash-password` command). Checking a password against it is in `src/lib/auth/password-hash.ts`, and `src/lib/env.ts` refuses anything that isn't a hash. It's written as `argon2id:m=19456,t=2,p=1:<salt>:<hash>` rather than the usual `$argon2id$v=19$…`, because Next.js and Docker Compose expand `$` in `.env` files, even inside quotes. The settings are part of each hash, so stronger ones can come later without breaking existing hashes.
 
 Sign out from the sidebar ends the session in that browser. To sign out everywhere, set `DOSSIER_PASSWORD` to a new hash (even of the same password, since each has its own salt) or rotate `DOSSIER_SECRET` and restart: every session carries a fingerprint of the password and is encrypted with a key from the secret, so all existing sessions stop working. Rotating the secret also means API keys saved in Settings have to be entered again, since they're encrypted with it too.
 
@@ -151,7 +151,7 @@ Then pick Local model in Settings with the address `http://ollama:11434` (inside
 The tests use a mock provider. To check the providers and prompts against real models, run the live tests, which are skipped otherwise:
 
 ```bash
-docker compose exec -e AI_LIVE=ollama app yarn vitest run src/lib/ai/providers.live.test.ts src/lib/ai/tasks/tasks.live.test.ts
+docker compose exec -e AI_LIVE=ollama app npx vitest run src/lib/ai/providers.live.test.ts src/lib/ai/tasks/tasks.live.test.ts
 ```
 
 ## Job search
@@ -166,9 +166,9 @@ Find jobs (`/jobs`) searches the job source chosen in Settings → Job search: J
 The tests use answers in each source's shape (`src/test/job-search-fixtures.ts`). The live tests check the real services, and are skipped otherwise. JSearch and Adzuna spend searches from your plan; the Arbeitsagentur is free:
 
 ```bash
-docker compose exec -e JOBS_LIVE=jsearch -e JSEARCH_TEST_KEY=… app yarn vitest run src/lib/job-search/jsearch.live.test.ts
-docker compose exec -e JOBS_LIVE=arbeitsagentur app yarn vitest run src/lib/job-search/sources.live.test.ts
-docker compose exec -e JOBS_LIVE=adzuna -e ADZUNA_TEST_APP_ID=… -e ADZUNA_TEST_KEY=… app yarn vitest run src/lib/job-search/sources.live.test.ts
+docker compose exec -e JOBS_LIVE=jsearch -e JSEARCH_TEST_KEY=… app npx vitest run src/lib/job-search/jsearch.live.test.ts
+docker compose exec -e JOBS_LIVE=arbeitsagentur app npx vitest run src/lib/job-search/sources.live.test.ts
+docker compose exec -e JOBS_LIVE=adzuna -e ADZUNA_TEST_APP_ID=… -e ADZUNA_TEST_KEY=… app npx vitest run src/lib/job-search/sources.live.test.ts
 ```
 
 ## Your data
@@ -192,11 +192,11 @@ The receiving end is a Cloudflare Worker that isn't published with the app. Chan
 Tests use [Vitest](https://vitest.dev) and run inside the container like everything else:
 
 ```bash
-docker/bin/yarn test          # run all tests once
-docker/bin/yarn test:watch    # re-run tests on change
-docker/bin/yarn test:coverage # run once with coverage (report in coverage/index.html)
-docker/bin/yarn lint
-docker/bin/yarn typecheck     # generates Next.js route types, then runs tsc
+docker/bin/npm test          # run all tests once
+docker/bin/npm run test:watch    # re-run tests on change
+docker/bin/npm run test:coverage # run once with coverage (report in coverage/index.html)
+docker/bin/npm run lint
+docker/bin/npm run typecheck     # generates Next.js route types, then runs tsc
 ```
 
 Put tests next to the code they cover. `*.test.ts` files run in Node (server code, pure logic);
@@ -211,7 +211,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs lint, type-check and tests with
 [Playwright](https://playwright.dev) tests in `e2e/` click through the main flows in headless Chromium: signing in, the profile, the theme builder and PDFs, finding a job and applying from it, a new application, refining and undoing, the application email, the board and table, the dashboard, and export, delete and import. `e2e/accessibility.spec.ts` runs [axe](https://github.com/dequelabs/axe-core) on every screen and its open menus and dialogs (no serious or critical WCAG 2.2 AA violations allowed) and checks where keyboard focus goes. They run against a production build, on the standalone server the image uses, so build first:
 
 ```bash
-docker/bin/yarn build && docker/bin/yarn test:e2e
+docker/bin/npm run build && docker/bin/npm run test:e2e
 ```
 
 The run starts its own server on port 3100 with a separate `dossier_e2e` database (created and migrated on the way, reset to the demo data before the specs that change data), a fake OpenAI-compatible server on port 3999 (`e2e/fake-ai.mts`) that answers each AI task with plausible output, and fake job sources on port 3998 (`e2e/fake-jobs.mts`), which the app reaches through `DOSSIER_JOBS_TEST_BASE_URL`, a variable for the tests only. Your development server and data are never touched: the tests refuse any database whose name doesn't end in `_e2e`. CI runs them in a job of their own and keeps the report of a failed run as an artifact.

@@ -1,8 +1,10 @@
 #!/bin/sh
-# Run yarn inside the app container, e.g. `docker/bin/yarn add zod`.
+# Run npm or npx inside the app container, e.g. `docker/bin/npm install zod`
+# or `docker/bin/npx prisma studio` (docker/bin/npx is a link to this script).
 # Uses the running container if there is one, otherwise a one-off container.
 set -eu
 
+cmd=$(basename "$0")
 cd "$(dirname "$0")/../.."
 
 # Only request a TTY when we have one, so this also works in pipes and CI.
@@ -10,7 +12,7 @@ tty=""
 [ -t 0 ] && [ -t 1 ] || tty="-T"
 
 if [ -n "$(docker compose ps --status running --quiet app)" ]; then
-  exec docker compose exec $tty app yarn "$@"
+  exec docker compose exec $tty app "$cmd" "$@"
 else
-  exec docker compose run --rm $tty app yarn "$@"
+  exec docker compose run --rm $tty app "$cmd" "$@"
 fi

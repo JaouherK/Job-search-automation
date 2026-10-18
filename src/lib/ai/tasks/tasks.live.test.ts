@@ -9,7 +9,7 @@ import { extractPosting, matchRequirements, tailorResume, writeCoverLetter, type
 
 // The whole chain against a real model, skipped unless asked for:
 //
-//   AI_LIVE=ollama docker/bin/yarn vitest run src/lib/ai/tasks/tasks.live.test.ts
+//   AI_LIVE=ollama docker/bin/npx vitest run src/lib/ai/tasks/tasks.live.test.ts
 //
 // It prints what the model wrote, to judge the prompts by, not only their shape.
 

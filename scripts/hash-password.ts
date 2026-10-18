@@ -2,7 +2,7 @@
 //
 //   docker run --rm -it ghcr.io/aientech/dossier hash-password
 //
-// and in development `docker/bin/yarn hash-password`. It asks for the
+// and in development `docker/bin/npm run hash-password`. It asks for the
 // password twice without showing it. When stdin isn't a terminal, it reads
 // the password from the first line instead, so it also works in a pipe.
 // Only the hash goes to stdout; prompts and messages go to stderr.

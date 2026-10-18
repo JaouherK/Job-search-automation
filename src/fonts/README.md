@@ -29,7 +29,7 @@ The first five were downloaded on 27 September 2026, the script fonts on 28 Sept
 To add or update a font, convert it inside the container:
 
 ```bash
-docker/bin/yarn dlx -p wawoff2 woff2_compress.js Font.ttf Font.woff2
+docker/bin/npx -p wawoff2 woff2_compress.js Font.ttf Font.woff2
 ```
 
 Then load it in `index.ts` with `next/font/local`.

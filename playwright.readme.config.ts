@@ -7,9 +7,9 @@ import base from "./playwright.config";
 
 // The README's screenshots and its recording, taken from the demo data on
 // the end-to-end stack (a production build with the fake AI server and job
-// sources; see DEVELOPMENT.md). Not part of `yarn test:e2e`. After `yarn build`:
+// sources; see DEVELOPMENT.md). Not part of `npm run test:e2e`. After `npm run build`:
 //
-//   docker/bin/yarn playwright test --config playwright.readme.config.ts
+//   docker/bin/npx playwright test --config playwright.readme.config.ts
 //
 // The screenshots replace .github/images/*.png; the recording lands in
 // test-results/readme/demo.webm, to convert to .github/images/demo.gif.

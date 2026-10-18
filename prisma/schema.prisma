@@ -1,5 +1,5 @@
 // Dossier's data model (PRD §9). After editing, run
-// `docker/bin/yarn prisma migrate dev --name <name>` and `docker compose restart app`.
+// `docker/bin/npx prisma migrate dev --name <name>` and `docker compose restart app`.
 //
 // Conventions:
 // - The profile's basics and the settings are key-value tables (ProfileField,

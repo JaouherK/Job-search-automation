@@ -36,11 +36,11 @@ So the worst a hostile posting can do is get odd wording into its own draft.
 
 ## Dependencies
 
-Dependabot proposes updates once a week, for the npm packages, GitHub Actions and Docker images. Advisories that `yarn npm audit --all --recursive` still reports, checked on 28 September 2026:
+Dependabot proposes updates once a week, for the npm packages, GitHub Actions and Docker images. Advisories that `npm audit` still reports, checked on 28 September 2026:
 
 | Package | Advisory | Why it's accepted |
 |---|---|---|
 | `deepmerge-ts` 7.1.5, from `@prisma/config` | Stack exhaustion on recursive objects ([GHSA-ggr8-5vv4-36mx](https://github.com/advisories/GHSA-ggr8-5vv4-36mx)) | Only merges Prisma's own config when its CLI starts; no user input reaches it. The fix is in 8.x, which Prisma doesn't support yet. |
 | `eslint` 9 | Version no longer supported | Development only. Waits for `eslint-config-next` to support ESLint 10. |
 
-`mysql2`, which Prisma's CLI ships but Dossier never loads (it uses PostgreSQL), is pinned to a patched release in `package.json` `resolutions`. Remove the pin once Prisma updates it.
+`mysql2`, which Prisma's CLI ships but Dossier never loads (it uses PostgreSQL), is pinned to a patched release in `package.json` `overrides`. Remove the pin once Prisma updates it.

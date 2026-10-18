@@ -10,7 +10,7 @@ export const APP_PORT = 3100;
 export const FAKE_AI_PORT = 3999;
 export const FAKE_JOBS_PORT = 3998;
 export const PASSWORD = "e2e-password";
-/** DOSSIER_PASSWORD for the run: `printf 'e2e-password' | yarn hash-password`. */
+/** DOSSIER_PASSWORD for the run: `printf 'e2e-password' | npm run -s hash-password`. */
 const PASSWORD_HASH = "argon2id:m=19456,t=2,p=1:wk-0a22NLDwpNVDMxLY9rw:x4bAXEh9EtlaTIqLiHwF_omyDOpcPtwPrV0_SJx_y2c";
 export const STORAGE_STATE = "e2e/.auth/state.json";
 

@@ -9,8 +9,8 @@ import type { AIProvider } from "./provider";
 // Checks against real models, skipped unless asked for:
 //
 //   docker compose up -d ollama   # with qwen2.5:3b pulled (see compose.yml)
-//   AI_LIVE=ollama docker/bin/yarn vitest run src/lib/ai/providers.live.test.ts
-//   AI_LIVE=anthropic ANTHROPIC_TEST_KEY=… docker/bin/yarn vitest run src/lib/ai/providers.live.test.ts
+//   AI_LIVE=ollama docker/bin/npx vitest run src/lib/ai/providers.live.test.ts
+//   AI_LIVE=anthropic ANTHROPIC_TEST_KEY=… docker/bin/npx vitest run src/lib/ai/providers.live.test.ts
 //
 // AI_LIVE takes a comma-separated list. OLLAMA_URL and OLLAMA_MODEL override
 // the defaults below.
