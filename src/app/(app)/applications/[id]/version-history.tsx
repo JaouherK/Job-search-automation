@@ -88,11 +88,11 @@ export function VersionHistory({
   return (
     <Dialog.Root open={document !== null} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-[rgb(29_28_26/0.24)]" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30" />
         <Dialog.Content className="fixed top-0 right-0 z-50 flex h-full w-[min(400px,100vw)] flex-col gap-4 overflow-auto border-l border-line-popover bg-card p-6 shadow-menu">
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-1">
-              <Dialog.Title className="font-serif text-[22px] leading-tight">History of the {name}</Dialog.Title>
+              <Dialog.Title className="text-[18px] font-semibold leading-tight">History of the {name}</Dialog.Title>
               <Dialog.Description className="text-sm text-muted">
                 A version is saved with each AI change and before each restore. Your own edits are in the current version.
               </Dialog.Description>

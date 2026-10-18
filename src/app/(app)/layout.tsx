@@ -1,7 +1,9 @@
+import { cookies } from "next/headers";
 import { after } from "next/server";
 
 import { verifySession } from "@/lib/auth/session";
 import { loadProfileName } from "@/lib/profile-data";
+import { COLOR_SCHEME_COOKIE, parseColorScheme, parseSidebarCollapsed, SIDEBAR_COOKIE } from "@/lib/ui-preferences";
 import { notePageLoad } from "@/lib/usage-ping";
 
 import { Sidebar } from "./sidebar";
@@ -18,6 +20,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   after(notePageLoad);
 
   const userName = (await loadProfileName()).trim() || "New user";
+  const jar = await cookies();
 
   return (
     <div className="flex min-h-screen">
@@ -27,10 +30,23 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       >
         Skip to content
       </a>
-      <Sidebar userName={userName} />
-      <main id="main" tabIndex={-1} className="flex min-w-0 flex-1 flex-col focus:outline-none">
-        {children}
-      </main>
+      <Sidebar
+        userName={userName}
+        collapsed={parseSidebarCollapsed(jar.get(SIDEBAR_COOKIE)?.value)}
+        colorScheme={parseColorScheme(jar.get(COLOR_SCHEME_COOKIE)?.value)}
+      />
+      {/* The screen sits in a white panel inset from the shell, as in
+          Coordinate AI. Each screen starts with its page bar (PageHeader or
+          PageBar), which draws the panel's top edge and stays in view. */}
+      <div className="flex min-w-0 flex-1 flex-col bg-paper px-2 pb-2">
+        <main
+          id="main"
+          tabIndex={-1}
+          className="relative flex min-w-0 flex-1 flex-col rounded-b-panel border border-t-0 border-line-card bg-surface focus:outline-none"
+        >
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

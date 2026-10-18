@@ -104,7 +104,7 @@ export function ProfileImport({ aiReady, provider, initialJobId }: { aiReady: bo
           </Link>
         }
       />
-      <div ref={area} className="flex max-w-[816px] flex-col gap-6 px-14 pb-20">
+      <div ref={area} className="flex max-w-[816px] flex-col gap-6 px-10 pb-20">
         {phase === "choose" && (
           <Card className="flex flex-col items-start gap-5">
             {!aiReady && (
@@ -130,7 +130,7 @@ export function ProfileImport({ aiReady, provider, initialJobId }: { aiReady: bo
                 type="file"
                 accept=".pdf,.docx,.md,.markdown,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,text/plain"
                 onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-                className="text-sm file:mr-3 file:rounded-control file:border file:border-line-control file:bg-input file:px-3 file:py-2 file:text-sm file:text-ink hover:file:border-ink"
+                className="text-sm file:mr-3 file:rounded-control file:border file:border-line-control file:bg-input file:px-3 file:py-2 file:text-sm file:text-ink hover:file:border-line-strong"
               />
             </div>
             <Button aria-disabled={!aiReady || !file || uploading || undefined} onClick={() => void (aiReady && !uploading ? read() : undefined)}>
@@ -195,7 +195,7 @@ function Preview({ profile }: { profile: ImportedProfile }) {
     <Card className="flex flex-col gap-7">
       <div className="flex flex-col gap-1">
         {/* Takes focus when the preview appears (E11-3). */}
-        <h2 tabIndex={-1} className="font-serif text-section">
+        <h2 tabIndex={-1} className="text-section">
           Here&apos;s what your resume says
         </h2>
         <p className="text-meta text-muted">{importCounts(profile)}. Anything marked “check” isn&apos;t in the file word for word.</p>

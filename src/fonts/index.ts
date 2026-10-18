@@ -6,15 +6,16 @@ import localFont from "next/font/local";
 // Each font sets a --typeface-* variable on <html>; globals.css maps them to
 // Tailwind's font-* utilities, and the resume themes use them directly.
 
-/** UI text. */
+/** A resume theme font (it was the UI's before the switch to Inter). */
 export const geist = localFont({
   src: "./geist/Geist-Variable.woff2",
   weight: "100 900",
   variable: "--typeface-geist",
   fallback: ["Helvetica", "Arial", "sans-serif"],
+  preload: false,
 });
 
-/** Page and section titles; also a resume theme font. */
+/** A resume theme font (it set the UI's titles before the switch to Inter). */
 export const newsreader = localFont({
   src: [
     { path: "./newsreader/Newsreader-Variable.woff2", weight: "200 800", style: "normal" },
@@ -103,12 +104,12 @@ export const fraunces = localFont({
   preload: false,
 });
 
+/** UI text, as in Coordinate AI; also a resume theme font. */
 export const inter = localFont({
   src: "./inter/Inter-Variable.woff2",
   weight: "100 900",
   variable: "--typeface-inter",
   fallback: ["Helvetica", "Arial", "sans-serif"],
-  preload: false,
 });
 
 export const manrope = localFont({

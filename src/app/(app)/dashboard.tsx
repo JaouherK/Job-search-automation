@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { PageHeader } from "@/components/page-header";
 import { buttonClassName } from "@/components/ui/button";
 import { StatusDot } from "@/components/ui/status-dot";
 import type { ApplicationStatus } from "@/generated/prisma/enums";
@@ -41,27 +42,27 @@ export function Dashboard({
   const within = range === "all" ? null : DASHBOARD_PERIODS.find((entry) => entry.value === range)?.label.toLowerCase();
   return (
     <>
-      <header className="flex flex-wrap items-end justify-between gap-6 px-14 pt-12 pb-7">
-        <div className="flex max-w-[640px] flex-col gap-2">
-          <Greeting name={firstName} serverPeriod={period} />
-          <p className="text-lead text-pretty text-muted">
-            {sent > 0
-              ? `${within ? `In the ${within} you've` : "You've"} sent ${plural(sent, "application", "applications")} and heard back from ${heardBack}. That's a solid run. Keep it going.`
-              : within
-                ? `Nothing sent in the ${within}. Your next application is only a paste away.`
-                : "Nothing sent yet. Your first application is only a paste away."}
-          </p>
-        </div>
-        <Link href="/new?fresh=1" className={buttonClassName("primary", "md", "hover:text-on-primary")}>
-          + New application
-        </Link>
-      </header>
+      <PageHeader
+        title={<Greeting name={firstName} serverPeriod={period} />}
+        description={
+          sent > 0
+            ? `${within ? `In the ${within} you've` : "You've"} sent ${plural(sent, "application", "applications")} and heard back from ${heardBack}. That's a solid run. Keep it going.`
+            : within
+              ? `Nothing sent in the ${within}. Your next application is only a paste away.`
+              : "Nothing sent yet. Your first application is only a paste away."
+        }
+        actions={
+          <Link href="/new?fresh=1" className={buttonClassName("primary", "md", "hover:text-on-primary")}>
+            + New application
+          </Link>
+        }
+      />
 
       {empty ? (
         <Welcome />
       ) : (
         <PeriodFilter period={range}>
-          <div className="grid max-w-[1200px] grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] items-start gap-5 px-14 pb-[72px]">
+          <div className="grid max-w-[1200px] grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] items-start gap-5 px-10 pb-[72px]">
             <Funnel figures={figures} />
             <ActivityChart weeks={figures.weeks} />
             <WhereThingsStand byStatus={figures.byStatus} />
@@ -80,7 +81,7 @@ function Funnel({ figures }: { figures: DashboardFigures }) {
     <section aria-labelledby="funnel-heading" className={`${card} col-span-full gap-6 p-7`}>
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h2 id="funnel-heading" className="font-serif text-section">
+          <h2 id="funnel-heading" className="text-section">
             Your funnel
           </h2>
           <p className="text-control text-muted">How far each application you&apos;ve sent has made it, and where the ones that stopped are now.</p>
@@ -100,7 +101,7 @@ function Figure({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex flex-col-reverse gap-0.5">
       <dt className="text-label text-muted">{label}</dt>
-      <dd className="font-serif text-[32px] leading-none tabular-nums">{value}</dd>
+      <dd className="text-[28px] font-semibold leading-none tracking-[-0.02em] tabular-nums">{value}</dd>
     </div>
   );
 }
@@ -153,7 +154,7 @@ function WorthALook({ items, quietDays }: { items: DashboardFigures["attention"]
         <ul>
           {items.map((item) => (
             <li key={item.id} className="-mx-2.5 border-t border-line">
-              <Link href={`/applications/${item.id}`} className="flex items-start gap-3 rounded-control px-2.5 py-[13px] text-ink hover:bg-[rgb(29_28_26/0.035)]">
+              <Link href={`/applications/${item.id}`} className="flex items-start gap-3 rounded-control px-2.5 py-[13px] text-ink hover:bg-hover">
                 <StatusDot status={item.status} className="mt-1.5" />
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-field font-medium">
@@ -176,9 +177,9 @@ function WorthALook({ items, quietDays }: { items: DashboardFigures["attention"]
 /** Before the first application: where to begin. */
 function Welcome() {
   return (
-    <div className="px-14 pb-[72px]">
+    <div className="px-10 pb-[72px]">
       <Panel>
-        <h2 className="font-serif text-section">Welcome to Dossier</h2>
+        <h2 className="text-section">Welcome to Dossier</h2>
         <p className="text-sm text-muted">
           Start with your profile: your roles, skills and education are what every tailored resume and cover letter is built from.
           Then paste a job posting, and your funnel and next steps will show up here.

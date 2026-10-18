@@ -37,7 +37,7 @@ export default async function DevLanguagesPage({ searchParams }: PageProps<"/dev
   return (
     <main className="flex flex-col gap-8 bg-canvas p-10">
       <header className="flex flex-col gap-2">
-        <h1 className="font-serif text-title">Document languages</h1>
+        <h1 className="text-title">Document languages</h1>
         <p className="text-muted">
           Every built-in language in the {theme.name} theme. Themes:{" "}
           {BUILT_IN_THEMES.map((entry, index) => (

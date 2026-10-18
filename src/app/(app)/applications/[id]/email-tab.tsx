@@ -55,7 +55,7 @@ export function EmailTab({
     return (
       <div className="flex flex-1 flex-col items-center overflow-auto bg-canvas px-10 pt-11 pb-16">
         <div className="flex w-full max-w-[560px] flex-col items-start gap-3 rounded-panel border border-line-card bg-card px-7 py-7">
-          <h2 className="font-serif text-section">An email to send it with</h2>
+          <h2 className="text-section">An email to send it with</h2>
           <p className="text-sm text-muted">
             I&apos;ll write a short email to go with your resume and cover letter, to whoever the posting says to send applications
             to. Copy it into your mail app or open it there, and attach the PDFs.

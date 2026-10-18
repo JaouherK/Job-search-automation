@@ -62,7 +62,7 @@ async function fakeSave(headline: string) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-5 border-t border-line pt-8">
-      <h2 className="font-serif text-section">{title}</h2>
+      <h2 className="text-section">{title}</h2>
       {children}
     </section>
   );
@@ -96,9 +96,9 @@ export function Gallery({ application }: { application: DemoApplication | null }
     });
 
   return (
-    <main className="mx-auto flex max-w-[960px] flex-col gap-10 px-14 py-12">
+    <main className="mx-auto flex max-w-[960px] flex-col gap-10 px-10 py-12">
       <header className="flex flex-col gap-2">
-        <h1 className="font-serif text-title">UI primitives</h1>
+        <h1 className="text-title">UI primitives</h1>
         <p className="text-lead text-muted">
           Every building block in every state. This page only exists in development.
         </p>
@@ -106,8 +106,8 @@ export function Gallery({ application }: { application: DemoApplication | null }
 
       <Section title="Type and colour">
         <Row label="Titles">
-          <span className="font-serif text-title">Page title</span>
-          <span className="font-serif text-section">Section title</span>
+          <span className="text-title">Page title</span>
+          <span className="text-section">Section title</span>
         </Row>
         <Row label="Text">
           <span className="text-field">Field 14.5</span>
@@ -118,7 +118,7 @@ export function Gallery({ application }: { application: DemoApplication | null }
           <span className="font-mono text-sm">Plex Mono</span>
           <span className="font-plex-sans text-sm">Plex Sans</span>
           <span className="font-garamond text-sm">EB Garamond</span>
-          <span className="font-serif text-sm italic">Newsreader italic</span>
+          <span className="text-sm italic">Newsreader italic</span>
         </Row>
         <Row label="Feedback">
           <span className="text-sm text-success">Success</span>
@@ -296,7 +296,7 @@ export function Gallery({ application }: { application: DemoApplication | null }
       <Section title="Dropdown menu and status dots">
         <Row label="Status menu">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-[9px] rounded-full border border-line-control bg-card px-3.5 py-[9px] text-sm font-medium hover:border-ink">
+            <DropdownMenuTrigger className="flex items-center gap-[9px] rounded-full border border-line-control bg-card px-3.5 py-[9px] text-sm font-medium hover:border-line-strong">
               <StatusDot status={status} />
               {statusInfo(status).label}
               <span aria-hidden="true" className="text-[10px] text-muted">
@@ -340,7 +340,7 @@ export function Gallery({ application }: { application: DemoApplication | null }
           </Button>
         </Row>
         <Card className="flex flex-col gap-[22px] px-9 py-10">
-          <div className="font-serif text-section">Reading the posting…</div>
+          <div className="text-section">Reading the posting…</div>
           <ProgressSteps steps={READING_STEPS} current={readingStep} />
           <div className="flex items-center justify-between gap-3">
             <p className="text-meta text-muted">This can take a little longer on a local model.</p>

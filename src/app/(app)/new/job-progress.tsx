@@ -36,7 +36,7 @@ export function JobProgress({
   return (
     <Card className="flex flex-col gap-[22px] px-9 py-10">
       {/* Takes focus when its step starts (E11-3). */}
-      <h2 tabIndex={-1} className="font-serif text-section">
+      <h2 tabIndex={-1} className="text-section">
         {title}
       </h2>
       <ProgressSteps steps={steps} current={current} />

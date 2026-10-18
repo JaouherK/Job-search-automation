@@ -34,7 +34,7 @@ export default async function DevDocumentsPage({ searchParams }: PageProps<"/dev
   return (
     <main className="flex flex-col gap-8 bg-canvas p-10">
       <header className="flex flex-col gap-1">
-        <h1 className="font-serif text-title">Documents</h1>
+        <h1 className="text-title">Documents</h1>
         <p className="text-muted">
           {mine ? "Your profile" : "The demo profile"} in every built-in theme, on{" "}
           {settings.paper === "A4" ? "A4" : "US Letter"} paper.{" "}

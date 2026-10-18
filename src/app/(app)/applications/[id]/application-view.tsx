@@ -528,7 +528,7 @@ export function ApplicationView({
     // window: the document scrolls in its column and the panel keeps its input
     // in view. Narrower, the panel moves below and the page scrolls as usual.
     <div className="@container/page flex flex-1 flex-col">
-    <Tabs value={tab} onValueChange={selectTab} className="flex flex-1 flex-col @min-[780px]/page:h-screen @min-[780px]/page:flex-none">
+    <Tabs value={tab} onValueChange={selectTab} className="flex flex-1 flex-col @min-[780px]/page:h-panel @min-[780px]/page:flex-none">
       {Object.entries(rewrites).map(([key, { jobId, revision }]) =>
         jobId ? (
           <JobWatcher<RegenerateUnitResult>
@@ -548,7 +548,6 @@ export function ApplicationView({
       )}
       <ApplicationHeader
         title={application.title}
-        company={application.company}
         meta={meta}
         actions={
           <>
@@ -569,7 +568,7 @@ export function ApplicationView({
         }
       >
         {/* Its underline runs the header's full width, under the padding too. */}
-        <TabsList aria-label="Application" className="-mx-14 px-14">
+        <TabsList aria-label="Application" className="-mx-10 px-10">
           <TabsTrigger value="resume">Resume</TabsTrigger>
           <TabsTrigger value="letter">Cover letter</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>

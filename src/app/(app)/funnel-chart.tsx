@@ -157,7 +157,7 @@ export function FunnelChart({ funnel }: { funnel: readonly FunnelStep[] }) {
           style={index === last ? undefined : { left: percentOf(column(index, last)) }}
         >
           <span className="text-sm">{stageLabel(step.stage)}</span>
-          <span className="font-serif text-2xl leading-none tabular-nums">{step.count}</span>
+          <span className="text-2xl font-semibold leading-none tabular-nums">{step.count}</span>
           <span className="text-label leading-[1.35] text-muted">{note(index)}</span>
         </li>
       ))}

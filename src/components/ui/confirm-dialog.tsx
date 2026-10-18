@@ -32,7 +32,7 @@ export function ConfirmDialog({
   return (
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="fixed inset-0 z-40 bg-[rgb(29_28_26/0.32)]" />
+        <AlertDialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
         <AlertDialog.Content
           onCloseAutoFocus={(event) => {
             if (!returnFocusTo?.current?.isConnected) return;
@@ -40,7 +40,7 @@ export function ConfirmDialog({
             returnFocusTo.current.focus();
           }}
           className="fixed top-1/2 left-1/2 z-50 flex w-[min(440px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-dialog border border-line-popover bg-card p-6 shadow-menu">
-          <AlertDialog.Title className="font-serif text-[22px] leading-tight">{title}</AlertDialog.Title>
+          <AlertDialog.Title className="text-[18px] font-semibold leading-tight">{title}</AlertDialog.Title>
           <AlertDialog.Description className="text-sm text-muted">{description}</AlertDialog.Description>
           <div className="mt-2 flex justify-end gap-2">
             <AlertDialog.Cancel className={buttonClassName("secondary", "sm")}>Cancel</AlertDialog.Cancel>
