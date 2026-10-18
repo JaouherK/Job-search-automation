@@ -19,6 +19,7 @@ import { JOB_SOURCES, JSEARCH_HOSTS } from "@/lib/job-search/search";
 import { cancelJob, startJob } from "@/lib/jobs/runner";
 import { checkForUpdate } from "@/lib/update-check";
 import { countTailoredDocuments, deleteAllDownloads, zipPdfsJob } from "@/lib/jobs/zip-pdfs";
+import { disconnectGoogle } from "@/lib/google/account";
 import { prisma } from "@/lib/prisma";
 import { applySecretChange, JOB_SOURCE_KEY } from "@/lib/secrets";
 
@@ -212,12 +213,16 @@ export const startZippingPdfs = action(z.object({}), async () => {
 export const deleteEverything = action(z.object({ confirm: z.literal("DELETE") }), async () => {
   const unfinished = await prisma.job.findMany({ where: { status: { in: [JobStatus.QUEUED, JobStatus.RUNNING] } }, select: { id: true } });
   for (const job of unfinished) await cancelJob(job.id);
+  // Revokes Dossier's access at Google too (E15-1).
+  await disconnectGoogle().catch(() => {});
 
   await prisma.$transaction(async (tx) => {
     await tx.job.deleteMany();
     // Find jobs' postings and past searches (E14-9, E14-10).
     await tx.posting.deleteMany();
     await tx.postingSearch.deleteMany();
+    // Mail fetched from Gmail (E15-3).
+    await tx.emailMessage.deleteMany();
     // Applications take their history, documents, chat and notes along.
     await tx.application.deleteMany();
     await tx.experience.deleteMany();

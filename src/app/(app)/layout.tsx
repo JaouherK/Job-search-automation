@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { after } from "next/server";
 
 import { verifySession } from "@/lib/auth/session";
+import { inboxCount } from "@/lib/google/inbox-data";
 import { loadProfileName } from "@/lib/profile-data";
 import { COLOR_SCHEME_COOKIE, parseColorScheme, parseSidebarCollapsed, SIDEBAR_COOKIE } from "@/lib/ui-preferences";
 import { notePageLoad } from "@/lib/usage-ping";
@@ -20,6 +21,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   after(notePageLoad);
 
   const userName = (await loadProfileName()).trim() || "New user";
+  // Replies waiting for an answer or a link (E15-3), on the Inbox item.
+  const waiting = await inboxCount().catch(() => 0);
   const jar = await cookies();
 
   return (
@@ -33,6 +36,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <Sidebar
         userName={userName}
         collapsed={parseSidebarCollapsed(jar.get(SIDEBAR_COOKIE)?.value)}
+        counts={waiting > 0 ? { "/inbox": waiting } : undefined}
         colorScheme={parseColorScheme(jar.get(COLOR_SCHEME_COOKIE)?.value)}
       />
       {/* The screen sits in a white panel inset from the shell, as in

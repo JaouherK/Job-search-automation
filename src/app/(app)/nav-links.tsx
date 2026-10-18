@@ -9,7 +9,7 @@ import { isCurrent, NAV } from "@/lib/nav";
 import { useSidebarCollapsed } from "./sidebar-frame";
 
 /** The sidebar's navigation, with the current section highlighted. */
-export function NavLinks() {
+export function NavLinks({ counts }: { counts?: Record<string, number> } = {}) {
   const pathname = usePathname();
   const collapsed = useSidebarCollapsed();
   return (
@@ -40,12 +40,23 @@ export function NavLinks() {
                 title={collapsed ? label : undefined}
                 className={cn(
                   "flex items-center gap-1.5 rounded-control px-3 py-1.5 text-sm font-medium text-muted hover:bg-hover hover:text-ink motion-safe:transition-colors",
-                  collapsed && "justify-center px-1.5",
+                  collapsed && "relative justify-center px-1.5",
                   active && "bg-hover text-ink",
                 )}
               >
                 <Icon size={16} aria-hidden="true" className="shrink-0" />
                 <span className={cn(collapsed && "sr-only")}>{label}</span>
+                {counts?.[href] ? (
+                  <span
+                    className={cn(
+                      "ml-auto rounded-full bg-primary px-1.5 text-[11px] leading-[18px] font-semibold text-on-primary",
+                      collapsed && "absolute ml-0 translate-x-2.5 -translate-y-2",
+                    )}
+                  >
+                    {counts[href]}
+                    <span className="sr-only"> waiting</span>
+                  </span>
+                ) : null}
               </Link>
             );
           })}

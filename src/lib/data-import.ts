@@ -88,6 +88,8 @@ export async function importExport(db: PrismaClient, data: DossierExport): Promi
       await tx.job.deleteMany({ where: { OR: ["application:", "units:", "refine:"].map((prefix) => ({ key: { startsWith: prefix } })) } });
       await tx.posting.deleteMany();
       await tx.postingSearch.deleteMany();
+      // Mail from Gmail belongs to the applications being replaced; the next check fetches what's still relevant.
+      await tx.emailMessage.deleteMany();
       await tx.application.deleteMany();
       await tx.experience.deleteMany();
       await tx.skill.deleteMany();

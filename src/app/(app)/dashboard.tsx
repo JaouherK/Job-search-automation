@@ -154,7 +154,7 @@ function WorthALook({ items, quietDays }: { items: DashboardFigures["attention"]
         <ul>
           {items.map((item) => (
             <li key={item.id} className="-mx-2.5 border-t border-line">
-              <Link href={`/applications/${item.id}`} className="flex items-start gap-3 rounded-control px-2.5 py-[13px] text-ink hover:bg-hover">
+              <Link href={`/applications/${item.id}${item.tab ? `?tab=${item.tab}` : ""}`} className="flex items-start gap-3 rounded-control px-2.5 py-[13px] text-ink hover:bg-hover">
                 <StatusDot status={item.status} className="mt-1.5" />
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-field font-medium">

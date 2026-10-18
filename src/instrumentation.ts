@@ -14,6 +14,10 @@ export async function register() {
     const { startBackupSchedule } = await import("@/lib/backup-schedule");
     startBackupSchedule();
 
+    // The inbox check, while a Google account is connected (E15-3).
+    const { startInboxSchedule } = await import("@/lib/google/sync");
+    startInboxSchedule();
+
     // Says what the usage ping sends and how to stop it, while it's on.
     const { USAGE_PING_NOTICE, usagePingEnabled } = await import("@/lib/usage-ping");
     if (usagePingEnabled()) console.log(USAGE_PING_NOTICE);

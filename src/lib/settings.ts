@@ -94,6 +94,39 @@ export const settingsSchema = z.object({
   jsearchHost: z.enum(JSEARCH_HOSTS).catch("openwebninja"),
   adzunaAppId: z.string().nullable().catch(null),
   adzunaKeyEnc: z.string().nullable().catch(null),
+  // Gmail and Calendar (E15). Off until the Google account is connected.
+  /** Read replies from Gmail. */
+  gmailRead: flag(true),
+  /** Which mail the inbox check reads: only threads Dossier knows and company domains, or every new mail. */
+  gmailScope: z.enum(["known", "all"]).catch("known"),
+  /** Minutes between inbox checks. */
+  gmailInterval: z.coerce.number().int().min(5).max(120).catch(10),
+  /** Look in the calendar for free times when an employer asks to meet. */
+  calendarAvailability: flag(true),
+  /** Add agreed interviews to the calendar. */
+  calendarEvents: flag(true),
+  /** The calendar to read and write; "primary" is the account's own. */
+  calendarId: z.string().catch("primary"),
+  /** Working days, 1 = Monday … 7 = Sunday, as JSON. */
+  workDays: z
+    .string()
+    .transform((value): unknown => {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return null;
+      }
+    })
+    .pipe(z.array(z.number().int().min(1).max(7)))
+    .catch([1, 2, 3, 4, 5]),
+  /** Working hours as "HH:MM". */
+  workStart: z.string().regex(/^\d{2}:\d{2}$/).catch("09:00"),
+  workEnd: z.string().regex(/^\d{2}:\d{2}$/).catch("17:00"),
+  /** The time zone for free slots and interviews; null means the browser's. */
+  workTimeZone: z.string().nullable().catch(null),
+  /** Interview length and the gap kept around other meetings, in minutes. */
+  slotMinutes: z.coerce.number().int().min(15).max(240).catch(45),
+  bufferMinutes: z.coerce.number().int().min(0).max(120).catch(15),
   // The usage ping (usage-ping.ts): this install's random ID, made by its
   // first ping, and the UTC day of the last one. They belong to the install,
   // not its data, so exports leave them out (INSTALL_SETTINGS).

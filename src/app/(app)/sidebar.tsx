@@ -21,12 +21,15 @@ export function Sidebar({
   userName,
   collapsed,
   colorScheme,
+  counts,
 }: {
   userName: string;
   /** Collapsed to its icons, as last left. */
   collapsed: boolean;
   /** The scheme the switch chose last, if any. */
   colorScheme?: ColorScheme;
+  /** Badges by nav item, e.g. replies waiting in the inbox. */
+  counts?: Record<string, number>;
 }) {
   return (
     <SidebarFrame
@@ -53,7 +56,7 @@ export function Sidebar({
           <span className="group-data-collapsed/sidebar:sr-only">New application</span>
         </Link>
 
-        <NavLinks />
+        <NavLinks counts={counts} />
       </div>
 
       <div className="flex flex-col gap-0.5 border-t border-line p-2 group-data-collapsed/sidebar:px-1">

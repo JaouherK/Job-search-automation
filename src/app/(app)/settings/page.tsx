@@ -9,6 +9,9 @@ import { backupsDir } from "@/lib/backups";
 import { exportFileName } from "@/lib/data-export";
 import { formatShortDate } from "@/lib/dates";
 import { env } from "@/lib/env";
+import { googleConnection } from "@/lib/google/account";
+import { redirectUri } from "@/lib/google/oauth";
+import { userTimeZone } from "@/lib/time-zone";
 import { appVersion } from "@/lib/version";
 import { prisma } from "@/lib/prisma";
 import { loadProfileName } from "@/lib/profile-data";
@@ -19,6 +22,8 @@ import { AiBehaviour } from "./ai-behaviour";
 import { AiProviderSection } from "./ai-provider-section";
 import { DataSection } from "./data-section";
 import { DocumentsSection } from "./documents-section";
+import { GoogleSection } from "./google-section";
+import { GoogleNotice } from "./google-notice";
 import { JobSearchSection } from "./job-search-section";
 import { AboutSection, type AboutFacts } from "./about-section";
 import { settingsSectionFromParam } from "./sections";
@@ -28,7 +33,8 @@ export const metadata: Metadata = { title: "Settings" };
 
 /** Settings (PRD §6.8); the section is in `?section=` (E10-1). */
 export default async function SettingsPage({ searchParams }: PageProps<"/settings">) {
-  const section = settingsSectionFromParam((await searchParams).section);
+  const params = await searchParams;
+  const section = settingsSectionFromParam(params.section);
   const settings = await loadSettings();
 
   return (
@@ -40,6 +46,29 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
         </>
       ) : section === "jobs" ? (
         <JobSearchSection initial={jobSearchView(await loadJobSearchConfig())} />
+      ) : section === "google" ? (
+        <>
+          <GoogleNotice outcome={typeof params.google === "string" ? params.google : null} />
+          <GoogleSection
+            connection={await googleView()}
+            browserTimeZone={(await userTimeZone()) ?? null}
+            redirectUri={redirectUri(await requestOrigin())}
+            initial={{
+              gmailRead: settings.gmailRead,
+              gmailScope: settings.gmailScope,
+              gmailInterval: settings.gmailInterval,
+              calendarAvailability: settings.calendarAvailability,
+              calendarEvents: settings.calendarEvents,
+              calendarId: settings.calendarId,
+              workDays: settings.workDays,
+              workStart: settings.workStart,
+              workEnd: settings.workEnd,
+              workTimeZone: settings.workTimeZone,
+              slotMinutes: settings.slotMinutes,
+              bufferMinutes: settings.bufferMinutes,
+            }}
+          />
+        </>
       ) : section === "data" ? (
         <DataSection
           hasApiKey={[settings.apiKeyEnc, settings.jsearchKeyEnc, settings.adzunaKeyEnc].some((key) => key !== null)}
@@ -72,6 +101,22 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
       )}
     </SettingsScreen>
   );
+}
+
+/** The connection as the Google section shows it: never a token. */
+async function googleView() {
+  const connection = await googleConnection();
+  if (connection.status !== "connected") return connection;
+  const { lastSyncAt, ...rest } = connection;
+  return { ...rest, lastSync: whenRan(lastSyncAt) };
+}
+
+/** The address this page was reached at, for the redirect URI to register. */
+async function requestOrigin(): Promise<string> {
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("x-forwarded-host")?.split(",")[0]?.trim() || requestHeaders.get("host") || "localhost:3333";
+  const protocol = requestHeaders.get("x-forwarded-proto")?.split(",")[0]?.trim() || (host.startsWith("localhost") ? "http" : "https");
+  return `${protocol}://${host}`;
 }
 
 /** The file name preview uses your name and your latest application, or sample values (SET-8). */
