@@ -45,7 +45,7 @@ export default defineConfig({
       // The standalone server, as in the production image, with the static
       // files it doesn't copy itself.
       command:
-        "yarn prisma migrate deploy && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/ && node .next/standalone/server.js",
+        "npx prisma migrate deploy && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/ && node .next/standalone/server.js",
       url: `http://localhost:${APP_PORT}/login`,
       env: { ...appEnv(), HOSTNAME: "127.0.0.1" },
       reuseExistingServer: false,

@@ -12,7 +12,7 @@ docker/bin/yarn hash-password   # set DOSSIER_PASSWORD in .env to what it prints
 docker compose up
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Source is bind-mounted, so edits hot-reload.
+Open [http://localhost:3333](http://localhost:3333). Source is bind-mounted, so edits hot-reload.
 
 `.env.example` documents every variable. The server refuses to start while `DOSSIER_PASSWORD` or `DOSSIER_SECRET` is missing, `DOSSIER_PASSWORD` isn't a password hash, or the secret is shorter than 32 characters, and logs which variable to fix.
 Server code reads configuration from the validated `env` object instead of `process.env`:
@@ -22,7 +22,7 @@ import { env } from "@/lib/env";
 ```
 
 On every start the `app` container runs `prisma generate`, `prisma migrate deploy`, then `next dev`.
-Postgres is also exposed on `localhost:5432` for host tools, using `DATABASE_URL` from `.env`.
+Postgres is also exposed on `localhost:5434` for host tools, using `DATABASE_URL` from `.env`.
 
 ## Yarn
 

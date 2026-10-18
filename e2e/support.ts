@@ -65,7 +65,7 @@ export async function resetData(): Promise<void> {
     "SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> '_prisma_migrations'",
   );
   await sql(`TRUNCATE TABLE ${tables.map(({ tablename }) => `"${tablename}"`).join(", ")} RESTART IDENTITY CASCADE`);
-  execFileSync("yarn", ["prisma", "db", "seed", "--", "--demo"], {
+  execFileSync("npx", ["prisma", "db", "seed", "--", "--demo"], {
     env: { ...process.env, DATABASE_URL: e2eDatabaseUrl() },
     stdio: "pipe",
   });
